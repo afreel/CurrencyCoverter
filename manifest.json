@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+
+  "name": "Currency Converter",
+  "description": "This extension converts currencies on the page",
+  "version": "1.0",
+  "background": {
+    "scripts": ["money.js", "background.js"]
+  },
+  "content_scripts": [ {
+    "js": [ "jquery-3.1.0.min.js", "money.min.js", "content-script.js" ],
+    "matches": [ "http://*/*", "https://*/*" ]
+  } ],
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+  "permissions": [
+    "tabs"
+  ]
+}
