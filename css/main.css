@@ -1,0 +1,13 @@
+#popup {
+  position: absolute;
+  z-index: 7777;
+  width: auto;
+  height: auto; 
+  max-width: 600px; 
+  left: 0px;
+  top: 0px;
+  background-color: #3385ff;
+  color: #f2f2f2;
+  padding: 3px;
+  border-radius: 10px;
+}

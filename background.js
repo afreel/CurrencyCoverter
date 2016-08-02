@@ -13,7 +13,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 
 // when switching tabs, send the state to that tab's content script
 chrome.tabs.onActivated.addListener(function(activeInfo) {
-  console.log('activated');
   chrome.tabs.sendMessage(activeInfo.tabId, {base: base, target: target, running: (state == 0 ? false : true)}, function(response) {
     // ...
   });
@@ -42,8 +41,8 @@ function updateState() {
 
 function updateIcon() {
   if (state == 0) {
-    chrome.browserAction.setIcon({path:"icon128.png"});
+    chrome.browserAction.setIcon({path:"images/icon128.png"});
   } else {
-    chrome.browserAction.setIcon({path:"icon" + base + "to" + target + ".png"});
+    chrome.browserAction.setIcon({path:"images/icon" + base + "to" + target + ".png"});
   }
 }

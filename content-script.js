@@ -1,7 +1,12 @@
-var popup = $("<div></div>").hide().css({position: "absolute", "z-index": "7777", width: "auto", height: "auto", "max-width": "600px", left: "0px", top: "0px"});
+var popup = $("<div></div>").attr('id', 'popup').hide();
 $('body').after(popup);
 
-console.log('content script run');
+var style = document.createElement('link');
+style.rel = 'stylesheet';
+style.type = 'text/css';
+style.href = chrome.extension.getURL('css/main.css');
+(document.head||document.documentElement).appendChild(style);
+
 chrome.runtime.sendMessage({greeting: "hello"});
 
 // $.getJSON(
@@ -39,7 +44,6 @@ var running = false;
 
 $(document).on("keypress", function (e) {
 	// keyboard letter 'e' 
-	console.log(e.which);
 	if (running && e.which == 101) {
 		var selectedString = window.getSelection().toString();
 		var parsedString = selectedString.replace(/[^\d\.\-\ ]/g, '');
@@ -49,7 +53,7 @@ $(document).on("keypress", function (e) {
 			var exchangeValue = fx.convert(baseValue, {from: baseCurrency, to: targetCurrency});
 			var exchangeValueRounded = Math.round(exchangeValue * 100) / 100
 			popup.text(numberWithCommas(exchangeValueRounded) + " " + targetCurrency);
-			popup.css({left: coords.x + window.scrollX, top: coords.y + window.scrollY - 20});
+			popup.css({left: coords.x + window.scrollX, top: coords.y + window.scrollY - 30});
 			popup.show();
 		}
 	}
