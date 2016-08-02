@@ -1,6 +1,9 @@
 var popup = $("<div></div>").hide().css({position: "absolute", "z-index": "7777", width: "auto", height: "auto", "max-width": "600px", left: "0px", top: "0px"});
 $('body').after(popup);
 
+console.log('content script run');
+chrome.runtime.sendMessage({greeting: "hello"});
+
 // $.getJSON(
 //   // NB: using Open Exchange Rates here, but you can use any source!
 //   'https://openexchangerates.org/api/latest.json?app_id=0f72ef31c1ed43e3bd2be66951ac951e',
@@ -19,32 +22,50 @@ $('body').after(popup);
 //   }
 // );
 
-fx.base = "USD";
-fx.rates = {
-	"EUR" : 0.745101, // eg. 1 USD === 0.745101 EUR
-	"GBP" : 0.647710, // etc...
-	"HKD" : 7.781919,
-	"USD" : 1,        // always include the base rate (1:1)
-	"JPY" : 102.31,
+ratesUSD = {
+	"USD" : 1,
+	"JPY" : 100.83,
 }
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	var baseCurrency = "USD";
-	var targetCurrency = "JPY";
-	var data = {}
-	if (message.method == "getSelection") {
-		console.log(window.getSelection().toString());
-			var selectedString = window.getSelection().toString();
-			var coords = getSelectionCoords();
-			if (!(isNaN(selectedString))) {
-				var baseValue = Number(selectedString);
-				var exchangeValue = fx.convert(baseValue, {from: baseCurrency, to: targetCurrency});
-				popup.text(exchangeValue);
-				popup.css({left: coords.x + window.scrollX, top: coords.y + window.scrollY - 20});
-				popup.show();
-				console.log(exchangeValue);
-			}
+ratesJPY = {
+	"USD" : 0.0099,
+	"JPY" : 1,
+}
+
+var baseCurrency;
+var targetCurrency;
+
+var running = false;
+
+$(document).on("keypress", function (e) {
+	// keyboard letter 'e' 
+	console.log(e.which);
+	if (running && e.which == 101) {
+		var selectedString = window.getSelection().toString();
+		var parsedString = selectedString.replace(/[^\d\.\-\ ]/g, '');
+		var coords = getSelectionCoords();
+		if (!(isNaN(parsedString))) {
+			var baseValue = Number(parsedString);
+			var exchangeValue = fx.convert(baseValue, {from: baseCurrency, to: targetCurrency});
+			var exchangeValueRounded = Math.round(exchangeValue * 100) / 100
+			popup.text(numberWithCommas(exchangeValueRounded) + " " + targetCurrency);
+			popup.css({left: coords.x + window.scrollX, top: coords.y + window.scrollY - 20});
+			popup.show();
+		}
 	}
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+	running = message.running;
+	fx.base = message.base;
+	if (message.base == "USD") {
+		fx.rates = ratesUSD;
+	} else {
+		fx.rates = ratesJPY;
+	}
+	baseCurrency = message.base;
+	targetCurrency = message.target;
+	var data = {}
 	sendResponse(data);
 });
 
@@ -95,4 +116,8 @@ function getSelectionCoords(win) {
     }
   }
   return { x: x, y: y };
+}
+
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
