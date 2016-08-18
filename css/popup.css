@@ -1,0 +1,13 @@
+#popup {
+  width: 150px;
+}
+
+.selector {
+  display: inline-block;
+}
+
+#separator {
+  padding: 5px;
+  color: #000080;
+  font-size: 14px;
+}

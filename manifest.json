@@ -5,14 +5,15 @@
   "description": "This extension converts currencies on the page",
   "version": "1.0",
   "background": {
-    "scripts": ["externals/money.min.js", "background.js"]
+    "scripts": ["externals/money.min.js", "externals/jquery-3.1.0.min.js", "background.js"]
   },
   "content_scripts": [ {
     "matches": [ "http://*/*", "https://*/*" ],
     "js": [ "externals/jquery-3.1.0.min.js", "externals/money.min.js", "content-script.js" ]
   } ],
   "browser_action": {
-    "default_icon": "images/icon128.png"
+    "default_icon": "images/icon128.png",
+    "default_popup": "popup.html"
   },
   "icons": { 
     "16": "images/icon16.png",

@@ -7,8 +7,15 @@ style.type = 'text/css';
 style.href = chrome.extension.getURL('css/main.css');
 (document.head||document.documentElement).appendChild(style);
 
-chrome.runtime.sendMessage({greeting: "hello"});
+/** 
+	NOTE: There are many API's out there for getting currency exchange rates.
+	(1) Open Exchange Rates - limit of 1000 hits, consider storing values if used
+	(2) Google (i.e. https://www.google.com/finance/converter?a=100&from=USD&to=BTC&meta=ei%3Doj6zV4mjK8GC0gSZ-LHwDw)
+	(3) Yahoo (i.e. http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22USDEUR%22,%20%22USDJPY%22,%20%22USDBGN%22,%20%22USDCZK%22,%20%22USDDKK%22,%20%22USDGBP%22,%20%22USDHUF%22,%20%22USDLTL%22,%20%22USDLVL%22,%20%22USDPLN%22,%20%22USDRON%22,%20%22USDSEK%22,%20%22USDCHF%22,%20%22USDNOK%22,%20%22USDHRK%22,%20%22USDRUB%22,%20%22USDTRY%22,%20%22USDAUD%22,%20%22USDBRL%22,%20%22USDCAD%22,%20%22USDCNY%22,%20%22USDHKD%22,%20%22USDIDR%22,%20%22USDILS%22,%20%22USDINR%22,%20%22USDKRW%22,%20%22USDMXN%22,%20%22USDMYR%22,%20%22USDNZD%22,%20%22USDPHP%22,%20%22USDSGD%22,%20%22USDTHB%22,%20%22USDZAR%22,%20%22USDISK%22)&env=store://datatables.org/alltableswithkeys)
+	(4) --USING-- Rate Exchange (i.e. http://rate-exchange.herokuapp.com/fetchRate?from=CAD&to=USD)
+**/
 
+// (1) Open Exchange Rates
 // $.getJSON(
 //   // NB: using Open Exchange Rates here, but you can use any source!
 //   'https://openexchangerates.org/api/latest.json?app_id=0f72ef31c1ed43e3bd2be66951ac951e',
@@ -27,21 +34,18 @@ chrome.runtime.sendMessage({greeting: "hello"});
 //   }
 // );
 
-ratesUSD = {
-	"USD" : 1,
-	"JPY" : 100.83,
-}
-
-ratesJPY = {
-	"USD" : 0.0099,
-	"JPY" : 1,
-}
-
+// TODO: Now doing currency API calls, so (1) update UI to allow selecting of different currencies, (2) make UX better
+ 
 var baseCurrency;
 var targetCurrency;
 
 var running = false;
 
+chrome.runtime.sendMessage({name: "contentScriptStartup"}, function(response) {
+	handleMessage(response);
+});
+
+// NOTE: using fx because it can handle lots of rates if we choose to store many rates at once (to save API calls)
 $(document).on("keypress", function (e) {
 	// keyboard letter 'e' 
 	if (running && e.which == 101) {
@@ -60,18 +64,18 @@ $(document).on("keypress", function (e) {
 });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	running = message.running;
+	handleMessage(message);
+});
+
+function handleMessage(message) {
+	fx.rates = {};
+	fx.rates[message.base] = 1;
+	fx.rates[message.target] = message.rate;
 	fx.base = message.base;
-	if (message.base == "USD") {
-		fx.rates = ratesUSD;
-	} else {
-		fx.rates = ratesJPY;
-	}
 	baseCurrency = message.base;
 	targetCurrency = message.target;
-	var data = {}
-	sendResponse(data);
-});
+	running = message.running;
+}
 
 // SOURCE: http://stackoverflow.com/questions/9495007/indenting-code-in-sublime-text-2
 function getSelectionCoords(win) {
