@@ -2,10 +2,12 @@ var currencies = ['AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG',
 
 var base;
 var target;
+var running;
 
 chrome.runtime.sendMessage({name: "popupStartup"}, function(response) {
   base = response.base;
   target = response.target;
+  running = response.running;
   load();
 });
 
@@ -14,6 +16,9 @@ function load() {
   var fromCurrencySelector = document.getElementById("fromCurrencySelector");
   var toCurrencySelector = document.getElementById("toCurrencySelector");
 
+  var toggleSwitch = document.getElementById("toggle");
+
+  // Popuplate currencies for the two selectors and set their 'change' listeners
   for (var i=0; i<currencies.length; i++) {
     var fromOption = document.createElement("option");
     fromOption.value = currencies[i];
@@ -40,4 +45,32 @@ function load() {
       });
     });
   }
+
+  // Set the UI based on on/off state
+  if (running) {
+    toggleSwitch.checked = true;
+  } else {
+    fromCurrencySelector.disabled = true;
+    toCurrencySelector.disabled = true;
+    toggleSwitch.checked = false;
+  }
+
+  // Toggle switch listener
+  toggleSwitch.addEventListener('change', function() {
+    if (toggleSwitch.checked) {
+      fromCurrencySelector.disabled = false;
+      toCurrencySelector.disabled = false;
+      toggleSwitch.checked = true;
+      chrome.runtime.sendMessage({name: "toggle", running: true}, function(response) {
+        //
+      });
+    } else {
+      fromCurrencySelector.disabled = true;
+      toCurrencySelector.disabled = true;
+      toggleSwitch.checked = false;
+      chrome.runtime.sendMessage({name: "toggle", running: false}, function(response) {
+        //
+      });
+    }
+  });
 }

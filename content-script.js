@@ -41,26 +41,39 @@ var targetCurrency;
 
 var running = false;
 
+var showing = false;
+
 chrome.runtime.sendMessage({name: "contentScriptStartup"}, function(response) {
 	handleMessage(response);
 });
 
 // NOTE: using fx because it can handle lots of rates if we choose to store many rates at once (to save API calls)
 $(document).on("keypress", function (e) {
-	// keyboard letter 'e' 
+	// keyboard letter 'e'
 	if (running && e.which == 101) {
-		var selectedString = window.getSelection().toString();
-		var parsedString = selectedString.replace(/[^\d\.\-\ ]/g, '');
-		var coords = getSelectionCoords();
-		if (!(isNaN(parsedString))) {
-			var baseValue = Number(parsedString);
-			var exchangeValue = fx.convert(baseValue, {from: baseCurrency, to: targetCurrency});
-			var exchangeValueRounded = Math.round(exchangeValue * 100) / 100
-			popup.text(numberWithCommas(exchangeValueRounded) + " " + targetCurrency);
-			popup.css({left: coords.x + window.scrollX, top: coords.y + window.scrollY - 30});
-			popup.show();
+		if (showing) {
+			popup.hide();
+			showing = false;
+		} else {
+			var selectedString = window.getSelection().toString();
+			var parsedString = selectedString.replace(/[^\d\.\-\ ]/g, '');
+			var coords = getSelectionCoords();
+			if (!(isNaN(parsedString)) && parsedString.length > 0) {
+				var baseValue = Number(parsedString);
+				var exchangeValue = fx.convert(baseValue, {from: baseCurrency, to: targetCurrency});
+				var exchangeValueRounded = Math.round(exchangeValue * 100) / 100
+				popup.text(numberWithCommas(exchangeValueRounded) + " " + targetCurrency);
+				popup.css({left: coords.x + window.scrollX, top: coords.y + window.scrollY - 30});
+				popup.show();
+				showing = true;
+			}
 		}
 	}
+});
+
+$(document).on("mousedown", function() {
+	popup.hide();
+	showing = false;
 });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
