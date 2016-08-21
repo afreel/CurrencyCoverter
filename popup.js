@@ -11,12 +11,23 @@ chrome.runtime.sendMessage({name: "popupStartup"}, function(response) {
   load();
 });
 
+var fromCurrencySelector = document.getElementById("fromCurrencySelector");
+var toCurrencySelector = document.getElementById("toCurrencySelector");
+
+var toggleSwitch = document.getElementById("toggle");
+var separator = document.getElementById("separator");
+
+fromCurrencySelector.onchange = function() {
+  base = this.value; // in case switching both at once
+  chrome.runtime.sendMessage({name: "popupChange", base: this.value, target: target});
+};
+
+toCurrencySelector.onchange = function() {
+  target = this.value; // in case switching both at once
+  chrome.runtime.sendMessage({name: "popupChange", base: base, target: this.value});
+};
+
 function load() {
-
-  var fromCurrencySelector = document.getElementById("fromCurrencySelector");
-  var toCurrencySelector = document.getElementById("toCurrencySelector");
-
-  var toggleSwitch = document.getElementById("toggle");
 
   // Popuplate currencies for the two selectors and set their 'change' listeners
   for (var i=0; i<currencies.length; i++) {
@@ -32,45 +43,53 @@ function load() {
       toOption.selected = true;
     }
     toCurrencySelector.appendChild(toOption);
-    fromCurrencySelector.addEventListener('change', function() {
-      base = this.value; // in case switching both at once
-      chrome.runtime.sendMessage({name: "popupChange", base: this.value, target: target}, function(response) {
-        //
-      });
-    });
-    toCurrencySelector.addEventListener('change', function() {
-      target = this.value; // in case switching both at once
-      chrome.runtime.sendMessage({name: "popupChange", base: base, target: this.value}, function(response) {
-        //
-      });
-    });
   }
 
   // Set the UI based on on/off state
   if (running) {
-    toggleSwitch.checked = true;
+    turnOnUI();
   } else {
-    fromCurrencySelector.disabled = true;
-    toCurrencySelector.disabled = true;
-    toggleSwitch.checked = false;
+    turnOffUI();
   }
 
   // Toggle switch listener
   toggleSwitch.addEventListener('change', function() {
     if (toggleSwitch.checked) {
-      fromCurrencySelector.disabled = false;
-      toCurrencySelector.disabled = false;
-      toggleSwitch.checked = true;
+      turnOnUI();
       chrome.runtime.sendMessage({name: "toggle", running: true}, function(response) {
         //
       });
     } else {
-      fromCurrencySelector.disabled = true;
-      toCurrencySelector.disabled = true;
-      toggleSwitch.checked = false;
+      turnOffUI();
       chrome.runtime.sendMessage({name: "toggle", running: false}, function(response) {
         //
       });
     }
   });
+}
+
+function turnOffUI() {
+  fromCurrencySelector.disabled = true;
+  toCurrencySelector.disabled = true;
+  toggleSwitch.checked = false;
+  separator.style.color = "#ccc";
+  separator.style.cursor = "default";
+  separator.onclick = null;
+}
+
+function turnOnUI() {
+  fromCurrencySelector.disabled = false;
+  toCurrencySelector.disabled = false;
+  toggleSwitch.checked = true;
+  separator.style.color = "black";
+  separator.style.cursor = "pointer";
+  separator.onclick = function() {
+    var fromCurrency = fromCurrencySelector.options[fromCurrencySelector.selectedIndex].value;
+    var toCurrency = toCurrencySelector.options[toCurrencySelector.selectedIndex].value;
+    fromCurrencySelector.value = toCurrency;
+    toCurrencySelector.value = fromCurrency;
+    base = toCurrency;
+    target = fromCurrency;
+    chrome.runtime.sendMessage({name: "popupChange", base: base, target: target});
+  }
 }

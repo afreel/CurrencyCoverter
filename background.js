@@ -73,6 +73,7 @@ function updateRate(b, t, callback) {
       callback(data.Rate);
     },
     error: function (xhr, ajaxOptions, thrownError) {
+      console.log(thrownError);
       return null;
     }
   });

@@ -15,29 +15,11 @@ style.href = chrome.extension.getURL('css/main.css');
 	(4) --USING-- Rate Exchange (i.e. http://rate-exchange.herokuapp.com/fetchRate?from=CAD&to=USD)
 **/
 
-// (1) Open Exchange Rates
-// $.getJSON(
-//   // NB: using Open Exchange Rates here, but you can use any source!
-//   'https://openexchangerates.org/api/latest.json?app_id=0f72ef31c1ed43e3bd2be66951ac951e',
-//   function(data) {
-//     // Check money.js has finished loading:
-//     if ( typeof fx !== "undefined" && fx.rates ) {
-//       fx.rates = data.rates;
-//       fx.base = data.base;
-//     } else {
-//       // If not, apply to fxSetup global:
-//       var fxSetup = {
-//         rates : data.rates,
-//         base : data.base
-//       }
-//     }
-//   }
-// );
-
 // TODO: Now doing currency API calls, so (1) update UI to allow selecting of different currencies, (2) make UX better
  
 var baseCurrency;
 var targetCurrency;
+var exchangeRate;
 
 var running = false;
 
@@ -47,8 +29,7 @@ chrome.runtime.sendMessage({name: "contentScriptStartup"}, function(response) {
 	handleMessage(response);
 });
 
-// NOTE: using fx because it can handle lots of rates if we choose to store many rates at once (to save API calls)
-$(document).on("keypress", function (e) {
+$(document).on("keypress", function(e) {
 	// keyboard letter 'e'
 	if (running && e.which == 101) {
 		if (showing) {
@@ -57,11 +38,11 @@ $(document).on("keypress", function (e) {
 		} else {
 			var selectedString = window.getSelection().toString();
 			var parsedString = selectedString.replace(/[^\d\.\-\ ]/g, '');
-			var coords = getSelectionCoords();
 			if (!(isNaN(parsedString)) && parsedString.length > 0) {
+				var coords = getSelectionCoords();
 				var baseValue = Number(parsedString);
-				var exchangeValue = fx.convert(baseValue, {from: baseCurrency, to: targetCurrency});
-				var exchangeValueRounded = Math.round(exchangeValue * 100) / 100
+				var exchangeValue = baseValue * exchangeRate;
+				var exchangeValueRounded = Math.round(exchangeValue * 100) / 100;
 				popup.text(numberWithCommas(exchangeValueRounded) + " " + targetCurrency);
 				popup.css({left: coords.x + window.scrollX, top: coords.y + window.scrollY - 30});
 				popup.show();
@@ -81,12 +62,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function handleMessage(message) {
-	fx.rates = {};
-	fx.rates[message.base] = 1;
-	fx.rates[message.target] = message.rate;
-	fx.base = message.base;
 	baseCurrency = message.base;
 	targetCurrency = message.target;
+	exchangeRate = message.rate;
 	running = message.running;
 }
 
