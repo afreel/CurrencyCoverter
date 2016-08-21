@@ -2,13 +2,13 @@
   "manifest_version": 2,
   "name": "Currency Converter",
   "description": "This extension allows you to convert currencies on the page. Highlight any number on the page and press 'e' to see the conversion.",
-  "version": "0.0.0.2",
+  "version": "0.0.0.3",
   "background": {
-    "scripts": ["externals/money.min.js", "externals/jquery-3.1.0.min.js", "background.js"]
+    "scripts": ["externals/jquery-3.1.0.min.js", "background.js"]
   },
   "content_scripts": [ {
     "matches": [ "http://*/*", "https://*/*" ],
-    "js": [ "externals/jquery-3.1.0.min.js", "externals/money.min.js", "content-script.js" ]
+    "js": [ "externals/jquery-3.1.0.min.js", "content-script.js" ]
   } ],
   "browser_action": {
     "default_icon": "images/icon128off.png",
